@@ -6,7 +6,8 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 from torch.utils.data import Dataset
-    
+import os
+
 class time_series_decoder_paper(Dataset):
     """synthetic time series dataset from section 5.1"""
     
@@ -67,3 +68,28 @@ class time_series_decoder_paper(Dataset):
             mask[i,i+1:] = 1
         mask = mask.float().masked_fill(mask == 1, float('-inf'))#.masked_fill(mask == 1, float(0.0))
         return mask
+
+class TrainDataset(Dataset):
+    def __init__(self, data_path, data_name):
+        print('data_name :', data_path)
+        self.data = np.load(os.path.join(data_path, f'train_data_{data_name}.npy'))
+        self.v = np.load(os.path.join(data_path, f'train_v_{data_name}.npy'))
+        self.label = np.load(os.path.join(data_path, f'train_label_{data_name}.npy'))
+        self.train_len = self.data.shape[0]
+    def __len__(self):
+        return self.train_len
+
+    def __getitem__(self, index):
+        return (self.data[index,:,:-1],int(self.data[index,0,-1]), self.v[index], self.label[index])
+
+class TestDataset(Dataset):
+    def __init__(self, data_path, data_name):
+        self.data = np.load(os.path.join(data_path, f'test_data_{data_name}.npy'))
+        self.v = np.load(os.path.join(data_path, f'test_v_{data_name}.npy'))
+        self.label = np.load(os.path.join(data_path, f'test_label_{data_name}.npy'))
+        self.test_len = self.data.shape[0]
+    def __len__(self):
+        return self.test_len
+
+    def __getitem__(self, index):
+        return (self.data[index,:,:-1],int(self.data[index,0,-1]),self.v[index],self.label[index])
